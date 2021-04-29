@@ -148,12 +148,7 @@ sub __gitRemote
 	my @grv=`git remote -v`;
 
 	foreach (@grv) {
-		if (@match = $_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m) {
-			push @remotes, $match[0];
-		}
-		elsif (@match = $_ =~ /(\w+)\s+(\/\w+){2,}\.git\s+\(push\)/m) {
-			push @remotes, $match[0];
-		}
+		push @remotes, $match[0] if (@match = ($_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m || $_ =~ /(\w+)\s+(\/\w+){2,}\.git\s+\(push\)/m));
 	}
 	chdir $cwd;
 	return @remotes;
