@@ -240,12 +240,10 @@ sub __start
 	if (! -e $self->{'repository'}) {
 		$self->{'error'} = "$self->{programName} is not in use in $self->{description}.";
 		$self->{'repostatus'} = Kalacem::RS_MISSING;
-		say "Kalacem::RS_MISSING";
 	}
 	elsif (! -l $self->{'repository'}) {
 		$self->{'repostatus'} = Kalacem::RS_BROKEN;
 		$self->{'error'} = "Installation looks broken because $self->{'repository'} is not a symlink.";
-		say "Kalacem::RS_BROKEN";
 	}
 	elsif (!stat $self->{'repository'}) {
 		$self->{'repostatus'} = Kalacem::RS_BADLINK;
