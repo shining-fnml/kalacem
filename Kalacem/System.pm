@@ -240,10 +240,12 @@ sub __start
 	if (! -e $self->{'repository'}) {
 		$self->{'error'} = "$self->{programName} is not in use in $self->{description}.";
 		$self->{'repostatus'} = Kalacem::RS_MISSING;
+		say "Kalacem::RS_MISSING";
 	}
 	elsif (! -l $self->{'repository'}) {
 		$self->{'repostatus'} = Kalacem::RS_BROKEN;
-		$self->{'error'} = "Installation looks boken because $self->{'repository'} is not a symlink.";
+		$self->{'error'} = "Installation looks broken because $self->{'repository'} is not a symlink.";
+		say "Kalacem::RS_BROKEN";
 	}
 	elsif (!stat $self->{'repository'}) {
 		$self->{'repostatus'} = Kalacem::RS_BADLINK;
@@ -411,11 +413,13 @@ sub cmd_git
 	}
 	Kalacem::fatalEc(Kalacem::EC_IOERR, "$self->{'repository'} is not symlink. Fix it manually") if ($self->{'repostatus'} == Kalacem::RS_BROKEN);
 
-	if ($self->{'force'} || $self->{'repostatus'} == Kalacem::RS_BADLINK) {
-		unlink $self->{'repository'};
-	}
-	else {
-		Kalacem::fatal "$self->{programName} is already configured for $self->{'description'}. Use --force to change it.";
+	if ($self->{'repostatus'} <= Kalacem::RS_BADLINK) {
+		if ($self->{'force'} || $self->{'repostatus'} == Kalacem::RS_BADLINK) {
+			unlink $self->{'repository'};
+		}
+		else {
+			Kalacem::fatal "$self->{programName} is already configured for $self->{'description'} and is pointing to $self->{'repository'}. Use --force to change it.";
+		}
 	}
 	$self->__parentDirForFile($self->{'repository'}, 1);
 	Kalacem::fatalEc (Kalacem::EC_CANTCREAT, "Error creating symlink ".$self->{'repository'}."->$pathRoot") if ! symlink $pathRoot, $self->{'repository'};
@@ -488,7 +492,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.0.0\n";
+	print "$self->{'programName'} 1.0.1\n";
 	return Kalacem::EC_OK;
 }
 

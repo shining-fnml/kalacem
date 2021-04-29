@@ -40,9 +40,9 @@ use constant {
 	RS_RO		=> 4,	# Repository is readonly
 	RS_NOGIT	=> 5,	# Repository does not point to a git directory
 	RS_BADLINK	=> 6,	# Repository is a broken symlink
-	RS_BROKEN	=> 6,	# Repository is not a symlink
-	RS_MISSING	=> 7,	# Repository is missing
-	RS_UNDEFINED	=> 8,	# Before any check
+	RS_BROKEN	=> 7,	# Repository is not a symlink
+	RS_MISSING	=> 8,	# Repository is missing
+	RS_UNDEFINED	=> 9,	# Before any check
 };
 
 sub fatal
