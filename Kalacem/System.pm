@@ -148,7 +148,12 @@ sub __gitRemote
 	my @grv=`git remote -v`;
 
 	foreach (@grv) {
-		push @remotes, $match[0] if (@match = $_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m);
+		if (@match = $_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m) {
+			push @remotes, $match[0];
+		}
+		elsif (@match = $_ =~ /(\w+)\s+(\/\w+){2,}\.git\s+\(push\)/m) {
+			push @remotes, $match[0];
+		}
 	}
 	chdir $cwd;
 	return @remotes;
@@ -416,7 +421,7 @@ sub cmd_git
 			unlink $self->{'repository'};
 		}
 		else {
-			Kalacem::fatal "$self->{programName} is already configured for $self->{'description'} and is pointing to $self->{'repository'}. Use --force to change it.";
+			Kalacem::fatal "$self->{programName} is already configured for $self->{'description'}. Use --force to change it.";
 		}
 	}
 	$self->__parentDirForFile($self->{'repository'}, 1);
@@ -490,7 +495,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.0.1\n";
+	print "$self->{'programName'} 1.0.2\n";
 	return Kalacem::EC_OK;
 }
 
