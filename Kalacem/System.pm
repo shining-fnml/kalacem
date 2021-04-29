@@ -108,8 +108,9 @@ sub __gitAddCommitPush
 	Kalacem::fatalEc(Kalacem::EC_NOINPUT, "Nothing to be exported.") unless @gExportable;
 
 	my $cmdline = "git add ".(join (" ", @gExportable)." >/dev/null 2>&1");
-	Kalacem::fatalEc(Kalacem::EC_SOFTWARE, "Unexpected error running '$cmdline' in directory $self->{'repository'}.") if system ($cmdline);
-
+	if (my $ec =system ($cmdline)) {
+		Kalacem::fatalEc(Kalacem::EC_SOFTWARE, (sprintf "Unexpected error running '%s' in directory %s. Exit code: %d, signal: %d", $cmdline, $self->{'repository'}, $ec>>8, $ec&0xFF));
+	}
 	return $self->__gitCommitPush(scalar @gExportable);
 }
 
@@ -148,7 +149,12 @@ sub __gitRemote
 	my @grv=`git remote -v`;
 
 	foreach (@grv) {
-		push @remotes, $match[0] if (@match = ($_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m || $_ =~ /(\w+)\s+(\/\w+){2,}\.git\s+\(push\)/m));
+		if (@match = $_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m) {
+			push @remotes, $match[0];
+		}
+		elsif (@match = $_ =~ /(\w+)\s+(\/\w+){2,}\.git\s+\(push\)/m) {
+			push @remotes, $match[0];
+		}
 	}
 	chdir $cwd;
 	return @remotes;
@@ -490,7 +496,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.0.2\n";
+	print "$self->{'programName'} 1.0.3\n";
 	return Kalacem::EC_OK;
 }
 
