@@ -73,7 +73,8 @@ sub _keyToFile
 sub cmd_update
 {
 	my ($self,$argv) = @_;
-	my $runFile = $ENV{'XDG_RUNTIME_DIR'}."/".$self->{programName};
+	my $xdg_runtime_dir = defined($ENV{'XDG_RUNTIME_DIR'}) ? $ENV{'XDG_RUNTIME_DIR'} : "/tmp/$self->{'programName'}/".`id -u`;
+	my $runFile = $xdg_runtime_dir."/".$self->{programName};
 	my $updateRequired = 0;
 	my $timeout = 3;
 

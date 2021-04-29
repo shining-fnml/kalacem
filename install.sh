@@ -32,6 +32,7 @@ main()
 			exit 1
 		fi
 	fi
+	[ -f /etc/apt/sources.list ] && apt-get install libio-prompter-perl
 	install kalacem /usr/local/bin
 	install -d $perl_inc/Kalacem
 	install -m 644 Kalacem/*.pm $perl_inc/Kalacem
