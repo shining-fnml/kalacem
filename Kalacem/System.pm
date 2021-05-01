@@ -107,6 +107,7 @@ sub __gitAddCommitPush
 
 	Kalacem::fatalEc(Kalacem::EC_NOINPUT, "Nothing to be exported.") unless @gExportable;
 
+	chdir $self->{'repository'};
 	my $cmdline = "git add ".(join (" ", @gExportable)." >/dev/null 2>&1");
 	if (my $ec =system ($cmdline)) {
 		Kalacem::fatalEc(Kalacem::EC_SOFTWARE, (sprintf "Unexpected error running '%s' in directory %s. Exit code: %d, signal: %d", $cmdline, $self->{'repository'}, $ec>>8, $ec&0xFF));
@@ -496,7 +497,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.0.3\n";
+	print "$self->{'programName'} 1.0.4\n";
 	return Kalacem::EC_OK;
 }
 
