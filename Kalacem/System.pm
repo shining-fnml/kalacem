@@ -480,6 +480,8 @@ sub cmd_remove
 
 	my @destinations = map { $self->_destination($_)} @removing;
 	my $cmdline = "git rm -q ".join(" ", @destinations);
+
+	chdir $self->{'repository'};
 	Kalacem::fatalEc(Kalacem::EC_SOFTWARE, "Unexpected error running '$cmdline' in directory $self->{'repository'}.") if system ($cmdline);
 
 	return $self->__gitCommitPush(0);
@@ -497,7 +499,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.0.4\n";
+	print "$self->{'programName'} 1.0.5\n";
 	return Kalacem::EC_OK;
 }
 
