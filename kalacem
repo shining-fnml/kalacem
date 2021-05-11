@@ -247,14 +247,18 @@ B<Kalacem> doesn't require write permissions on the remote repository as long as
 =head1 FILES
 
 =over 4
+
+=item * F<$HOME/.config/kalacem/omissis>: Ignore file for I<User realm>.
+
+=item * F<$HOME/.config/kalacem/remote>: Configuration file for I<User realm>.
  
 =item * F<$HOME/.local/share/kalacem>: Symbolic link to local repository for I<User realm>.
-
-=item * F<$HOME/.config/kalacem.cfg>: Configuration file for I<User realm>.
+ 
+=item * F</etc/kalacem/omissis>: Ignore file for I<System realm>.
+ 
+=item * F</etc/kalacem/remote>: Configuration file for I<System realm>.
 
 =item * F</etc/kalacem/repository>: Symbolic link to local repository for I<System realm>.
- 
-=item * F</etc/kalacem/kalacem.cfg>: Configuration file for I<System realm>.
 
 Both configuration files at the present cointain just the name of the writable remote repository.
 Those names are autodetected when running C<kalacem --git GITDIR>. It's necessary to C<git remote add SOMETING> with read/write access before B<kalacem>'s initialization.

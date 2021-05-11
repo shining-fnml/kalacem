@@ -126,10 +126,12 @@ With **kalacem** on your side you have never more to worry to keep track of the 
 
 # FILES
 
+- `$HOME/.config/kalacem/omissis`: Ignore file for _User realm_.
+- `$HOME/.config/kalacem/remote`: Configuration file for _User realm_.
 - `$HOME/.local/share/kalacem`: Symbolic link to local repository for _User realm_.
-- `$HOME/.config/kalacem.cfg`: Configuration file for _User realm_.
+- `/etc/kalacem/omissis`: Ignore file for _System realm_.
+- `/etc/kalacem/remote`: Configuration file for _System realm_.
 - `/etc/kalacem/repository`: Symbolic link to local repository for _System realm_.
-- `/etc/kalacem/kalacem.cfg`: Configuration file for _System realm_.
 
     Both configuration files at the present cointain just the name of the writable remote repository.
     Those names are autodetected when running `kalacem --git GITDIR`. It's necessary to `git remote add SOMETING` with read/write access before **kalacem**'s initialization.
