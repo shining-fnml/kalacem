@@ -10,7 +10,9 @@ kalacem --git \[--force\] \[--system\] \[REPOSITORY\]
 
 kalacem <--help|--man|--version>
 
-kalacem <--look|--push|--remove> \[--system\] FILE...
+kalacem <--look|--OMIT|--push|--remove> \[--system\] FILE...
+
+kalacem --omit \[--system\] \[FILE...\]
 
 kalacem --update EXPIRATION \[TIMEOUT\]
 
@@ -44,6 +46,14 @@ kalacem --update EXPIRATION \[TIMEOUT\]
 - **--man**
 
     Prints the manual page and exits.
+
+- **--omit**
+
+    Don't import or export _FILE_. If `FILE` is omitted returns the list of currently ignored files. Accept several files at once and looks a lot like `.gitignore`.
+
+- **--OMIT**
+
+    Remove _FILE_ from ignore list.
 
 - **--push**
 
