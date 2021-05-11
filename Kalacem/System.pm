@@ -35,9 +35,9 @@ use constant {
 	SL_OK     =>  1
 };
 
-our @gExportable;
-our @gImportable;
-our %gFile;
+my @gExportable;
+my @gImportable;
+my %gFile;
 
 # Convention:
 # _method: required in both System and User classes.
@@ -49,11 +49,13 @@ sub new
 {
 	my ($class,$parameters) = @_;
 	my $self = bless {
-		config => "/etc/$parameters->{'programName'}/$parameters->{'programName'}.cfg",
+		configOmissis => "/etc/$parameters->{'programName'}/omissis",
+		configRemote => "/etc/$parameters->{'programName'}/remote",
 		description => "this system",
 		error => 'Unknown error',
 		expiration => $parameters->{'expiration'},
 		force => $parameters->{'force'},
+		omissions => [],
 		programName => $parameters->{'programName'},
 		remote => "",
 		repostatus => Kalacem::RS_UNDEFINED,
@@ -63,6 +65,38 @@ sub new
 	$self->_init();
 	$self->__start();
 	return $self;
+}
+
+sub __check
+{
+	my ($self,$verbose) = @_;
+	my @errors;
+
+	for my $key (keys %gFile) {
+		my $file = $self->_keyToFile($key);
+
+		next if (any{$_ eq $file} @{$self->{omissions}});
+
+		my @stats = lstat $file;
+		if (! scalar @stats) {
+			warn "missing $file\n" if $verbose;
+			push @gImportable, $key;
+		}
+		elsif (!S_ISREG($stats[2]) && !S_ISLNK($stats[2])) {
+			push @errors, "$file is not a regular file nor a symlink";
+		}
+		elsif ( md5File($file, $file) ne $gFile{$key}{md5} ) {
+			if ($stats[9] < $gFile{$key}{mtime}) {
+				print "Central modification of $file\n" if $verbose;
+				push @gImportable, $key;
+			}
+			else {
+				print "Local modification of $file\n" if $verbose;
+				push @gExportable, $key;
+			}
+		}
+	}
+	return @errors;
 }
 
 sub __configWrite
@@ -75,7 +109,7 @@ sub __configWrite
 	return unless ($remote eq "");
 
 	unless (scalar @remotes) {
-		unlink ($self->{'config'}) if -e $self->{'config'};
+		unlink ($self->{'configRemote'}) if -e $self->{'configRemote'};
 		Kalacem::fatalEc(Kalacem::EC_UNAVAILABLE, "No write enabled repositories found.");
 	}
 
@@ -90,10 +124,10 @@ sub __configWrite
 		$remote = $selection;
 		Kalacem::fatalEc(Kalacem::EC_CONFIG, "Aborted.") if ($selection eq "<abort>");
 	}
-	$self->__parentDirForFile($self->{'config'}, 1);
+	$self->__parentDirForFile($self->{'configRemote'}, 1);
 
-	unless (open my $handle, ">", $self->{'config'}) {
-		warn "Cannot write to $self->{'config'}.\n";
+	unless (open my $handle, ">", $self->{'configRemote'}) {
+		warn "Cannot write to $self->{'configRemote'}.\n";
 	}
 	else {
 		print $handle $remote;
@@ -119,7 +153,7 @@ sub __gitCommitPush
 {
 	my ($self, $count) = @_;
 
-	Kalacem::fatalEc(Kalacem::EC_IOERR, "Cannot read from $self->{'config'}.") unless open (my $handle, "<", $self->{'config'});
+	Kalacem::fatalEc(Kalacem::EC_IOERR, "Cannot read from $self->{'configRemote'}.") unless open (my $handle, "<", $self->{'configRemote'});
 
 	my $repository = <$handle>;
 	chomp $repository;
@@ -199,6 +233,32 @@ sub __isGit
 	return $rc;
 }
 
+sub __omitList
+{
+	my $self = shift;
+
+	$self->healthRequired(Kalacem::RS_RO);
+	unless (-r $self->{configOmissis}) {
+		$self->__parentDirForFile($self->{configOmissis}, 1);
+		if (open my $handle, ">", $self->{configOmissis}) {
+			close($handle);
+		}
+		else {
+			warn "Cannot write to $self->{configOmissis}.\n";
+			return Kalacem::EC_IOERR;
+		}
+	}
+	return if (-z $self->{configOmissis});
+
+	Kalacem::fatalEc (Kalacem::EC_IOERR, "Cannot open $self->{configOmissis} for reading") unless open my $handle, "<", $self->{configOmissis};
+
+	while(<$handle>) {
+		chomp;
+		push @{$self->{omissions}}, $_;
+	}
+	close($handle);
+}
+
 sub __parentDirForFile
 {
 	my ($self, $filename, $fatal) = @_;
@@ -230,7 +290,7 @@ sub __pushRemoveCommon
 			push @$good, $realpath;
 		}
 		else {
-			push @errors, $self->{'error'};
+			push @errors, $self->{error};
 		}
 	}
 	if (scalar @errors) {
@@ -267,12 +327,12 @@ sub __start
 			$self->{'error'} = "Central repository is read-only.";
 			$self->{'repostatus'} = Kalacem::RS_RO;
 		}
-		elsif (! -r $self->{'config'}) {
+		elsif (! -r $self->{'configRemote'}) {
 			$self->{'error'} = "Central repository is not set read-write yet.";
 			$self->{'repostatus'} = Kalacem::RS_NOWRITE;
 		}
-		elsif (!open my $handle, "<", $self->{'config'}) {
-			$self->{'error'} = "Cannot read from $self->{'config'}.";
+		elsif (!open my $handle, "<", $self->{'configRemote'}) {
+			$self->{'error'} = "Cannot read from $self->{'configRemote'}.";
 			$self->{'repostatus'} = Kalacem::RS_BADCONF;
 		}
 		else {
@@ -319,34 +379,12 @@ sub _keyToFile
 sub check
 {
 	my ($self,$verbose) = @_;
-	my @errors;
 
 	chdir $self->{'repository'};
 	File::Find::find({wanted => \&wanted}, '.');
+	$self->__omitList();
 
-	for my $key (keys %gFile) {
-		my $file = $self->_keyToFile($key);
-		my @stats = lstat $file;
-
-		if (! scalar @stats) {
-			warn "missing $file\n" if $verbose;
-			push @gImportable, $key;
-		}
-		elsif (!S_ISREG($stats[2]) && !S_ISLNK($stats[2])) {
-			push @errors, "$file is not a regular file nor a symlink";
-		}
-		elsif ( md5File($file, $file) ne $gFile{$key}{md5} ) {
-			if ($stats[9] < $gFile{$key}{mtime}) {
-				print "Central modification of $file\n" if $verbose;
-				push @gImportable, $key;
-			}
-			else {
-				print "Local modification of $file\n" if $verbose;
-				push @gExportable, $key;
-			}
-		}
-	}
-
+	my @errors = $self->__check($verbose);
 	my $centralMod = scalar @gImportable;
 	my $localMod = scalar @gExportable;
 	if (scalar @errors) {
@@ -450,6 +488,75 @@ sub cmd_look
 
 		print "$self->{'error'}\n";
 	}
+	return 0;
+}
+
+sub cmd_omit
+{
+	my ($self,$argv) = @_;
+	my @files;
+
+	$self->__omitList();
+	if (! scalar @$argv) {
+		if (! scalar @{$self->{omissions}}) {
+			print STDERR "Empty omission list.\n";
+		}
+		else {
+			print "$_\n" foreach (@{$self->{omissions}});
+		}
+		return 0;
+	}
+	foreach (@$argv) {
+		my $realpath = realpath $_;
+
+		if ($self->_inRepository($realpath) == Kalacem::IR_NO) {
+			print "$self->{'error'}\n";
+			next;
+		}
+		if (any{$_ eq $realpath} @{$self->{omissions}}) {
+			print "$realpath already ignored\n";
+		}
+		else {
+			push @files, $realpath;
+		}
+	}
+	if (scalar @files) {
+		Kalacem::fatalEc(Kalacem::EC_IOERR, "Cannot write to $self->{configOmissis}.)") unless (open my $handle, ">>", $self->{configOmissis});
+
+		print $handle "$_\n" foreach (@files);
+		close $handle;
+	}
+	return 0;
+}
+
+sub cmd_OMIT
+{
+	my ($self,$argv) = @_;
+	my @files;
+
+	Kalacem::fatalEc(Kalacem::EC_USAGE, "File path or paths required.") unless (scalar @$argv);
+
+	$self->__omitList();
+	foreach (@$argv) {
+		my $realpath = realpath $_;
+
+		if ($self->_inRepository($realpath) == Kalacem::IR_NO) {
+			print "$self->{'error'}\n";
+			next;
+		}
+		Kalacem::fatalEc(Kalacem::EC_FAILURE, "$realpath is not ignored. Aborting.") unless (any{$_ eq $realpath} @{$self->{omissions}});
+
+		push @files, $realpath;
+	}
+	if (scalar @files) {
+		Kalacem::fatalEc(Kalacem::EC_IOERR, "Cannot write to $self->{configOmissis}.)") unless (open my $handle, ">", $self->{configOmissis});
+
+		foreach my $realpath (@{$self->{omissions}}) {
+			print $handle "$_\n" unless (any{$_ eq $realpath} @files);
+		}
+		close $handle;
+	}
+	return 0;
 }
 
 sub cmd_push
@@ -499,7 +606,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.0.5\n";
+	print "$self->{'programName'} 1.1.0\n";
 	return Kalacem::EC_OK;
 }
 

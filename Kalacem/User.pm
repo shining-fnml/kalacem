@@ -46,7 +46,8 @@ sub _init
 {
 	my $self = shift;
 
-	$self->{config} = "$ENV{'HOME'}/.config/$self->{programName}.cfg";
+	$self->{configOmissis} = "$ENV{'HOME'}/.config/$self->{programName}/omissis";
+	$self->{configRemote} = "$ENV{'HOME'}/.config/$self->{programName}/remote";
 	$self->{description} = "your home directory";
 	$self->{repository} = "$ENV{'HOME'}/.local/share/$self->{programName}";
 	return $self;

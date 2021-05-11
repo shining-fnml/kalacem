@@ -18,8 +18,9 @@
 use strict;
 use warnings;
 use Cwd qw(getcwd realpath);
+use Data::Dumper;
 use File::Basename;
-use Getopt::Long;
+use Getopt::Long qw(:config no_ignore_case);
 use Kalacem::Kalacem qw(fatal);
 use Kalacem::System;
 use Kalacem::User;
@@ -28,7 +29,7 @@ use Pod::Usage;		# debian: libpod-markdown-perl perl-doc
  
 # Global variables - begin
 my %gOpts = (system=>0);
-my %gOptEx = (check=>0, export=>0, git=>0, help=>0, import=>0, look=>0, man=>0, push=>0, remove=>0, update=>0, version=>0); # delete update?
+my %gOptEx = (check=>0, export=>0, git=>0, help=>0, import=>0, look=>0, man=>0, omit=>0, OMIT=>0, push=>0, remove=>0, update=>0, version=>0); # delete update?
 my %gParameters = (expiration => 0, force => 0, programName => basename(realpath $0));
 # Global variables - end
  
@@ -58,6 +59,8 @@ sub main
 		"import"  => \$gOptEx{"import"},		# flag
 		"look"  => \$gOptEx{"look"},			# flag
 		"man" => \$gOptEx{"man"},			# flag
+		"omit" => \$gOptEx{"omit"},			# flag
+		"OMIT" => \$gOptEx{"OMIT"},			# flag
 		"push" => \$gOptEx{"push"},			# flag
 		"remove"  => \$gOptEx{"remove"},		# flag
 		"system"  => \&rootPrivileges,			# sub
@@ -78,6 +81,7 @@ sub main
 	exit pod2usage(1) if $gOptEx{'help'};
 
 	my $method = $gOpts{'system'} ? System->new(\%gParameters) : User->new(\%gParameters);
+	# print Dumper(%gOptEx);
 	foreach (keys(%gOptEx)) {
 		my $command = "cmd_$_";
 		exit $method->$command(\@ARGV) if ($gOptEx{$_})
@@ -102,7 +106,9 @@ kalacem --git [--force] [--system] [REPOSITORY]
 
 kalacem <--help|--man|--version>
 
-kalacem <--look|--push|--remove> [--system] FILE...
+kalacem <--look|--OMIT|--push|--remove> [--system] FILE...
+
+kalacem --omit [--system] [FILE...]
 
 kalacem --update EXPIRATION [TIMEOUT]
  
@@ -138,6 +144,14 @@ Check if I<FILE> is already included in the central repository. It can look for 
 =item B<--man>
  
 Prints the manual page and exits.
+ 
+=item B<--omit>
+ 
+Don't import or export I<FILE>. If F<FILE> is omitted returns the list of currently ignored files. Accept several files at once and looks a lot like F<.gitignore>.
+ 
+=item B<--OMIT>
+ 
+Remove I<FILE> from ignore list.
  
 =item B<--push>
  
