@@ -6,6 +6,19 @@
 
 #	* CODE *
 
+perlmoduledir()
+{
+	needle=$1
+	
+	if [ "x$perl_inc" = "x" ] ; then
+		perl_inc=`perl -V | sed -e '1,/ *@INC:/d' | grep "$needle\$" | head -1`
+		if [ "x$perl_inc" = "x" ] ; then
+			echo "Can't find a suitable location to install perl modules." > /dev/stderr
+			exit 1
+		fi
+	fi
+}
+
 makeman()
 {
 	if [ `id -u` -ne 0 ] ; then echo "Please run as root">/dev/stderr ; exit 1 ; fi
@@ -24,15 +37,13 @@ makeman()
 
 main()
 {
-
-	if [ "x$perl_inc" = "x" ] ; then
-		perl_inc=`perl -V | sed -e '1,/ *@INC:/d' | grep 'site_perl$'`
-		if [ "x$perl_inc" = "x" ] ; then
-			echo "Can't find a suitable location to install perl modules." > /dev/stderr
-			exit 1
-		fi
+	if [ -f /etc/apt/sources.list ] ; then
+		perlmoduledir site_perl
+		apt-get install libio-prompter-perl liblist-moreutils-perl
+	elif [ -e /etc/fedora-release ] ; then
+		perlmoduledir vendor_perl
+		dnf install perl-IO-Prompter perl-List-MoreUtils
 	fi
-	[ -f /etc/apt/sources.list ] && apt-get install libio-prompter-perl liblist-moreutils-perl
 	install kalacem /usr/local/bin
 	install -d $perl_inc/Kalacem
 	install -m 644 Kalacem/*.pm $perl_inc/Kalacem
