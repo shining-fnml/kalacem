@@ -606,7 +606,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.1.0\n";
+	print "$self->{'programName'} 1.1.1\n";
 	return Kalacem::EC_OK;
 }
 
