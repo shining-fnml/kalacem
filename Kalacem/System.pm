@@ -26,7 +26,7 @@ use File::Copy 'cp';
 use File::Find;
 use File::Path qw(make_path);
 use IO::Prompter;
-use Kalacem::Kalacem qw(fatal);
+use Kalacem::Kalacem;
 use List::MoreUtils qw(any);
 
 use constant {
@@ -184,7 +184,7 @@ sub __gitRemote
 	my @grv=`git remote -v`;
 
 	foreach (@grv) {
-		if (@match = $_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(:\d{1,5})?(\/\w+)+\.git\s+\(push\)/m) {
+		if (@match = $_ =~ /(\w+)\s+ssh:\/\/(\w+@)?((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9]))(\/\w+)+\.git\s+\(push\)/m) {
 			push @remotes, $match[0];
 		}
 		elsif (@match = $_ =~ /(\w+)\s+(\/\w+){2,}\.git\s+\(push\)/m) {
@@ -606,7 +606,7 @@ sub cmd_version
 {
 	my $self = shift;
 
-	print "$self->{'programName'} 1.1.1\n";
+	print "$self->{'programName'} 1.1.0\n";
 	return Kalacem::EC_OK;
 }
 

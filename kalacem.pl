@@ -21,7 +21,6 @@ use Cwd qw(getcwd realpath);
 use Data::Dumper;
 use File::Basename;
 use Getopt::Long qw(:config no_ignore_case);
-use Kalacem::Kalacem qw(fatal);
 use Kalacem::System;
 use Kalacem::User;
 use List::Util 'sum';

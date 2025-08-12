@@ -32,7 +32,7 @@ makeman()
 		exit 1
 	fi
 	mkdir -p $man/man1
-	pod2man -s 1 kalacem $man/man1/kalacem.1
+	pod2man -s 1 kalacem.pl $man/man1/kalacem.1
 }
 
 main()
@@ -44,7 +44,7 @@ main()
 		perlmoduledir vendor_perl
 		dnf install perl-IO-Prompter perl-List-MoreUtils
 	fi
-	install kalacem /usr/local/bin
+	install kalacem.pl /usr/local/bin/kalacem
 	install -d $perl_inc/Kalacem
 	install -m 644 Kalacem/*.pm $perl_inc/Kalacem
 }
