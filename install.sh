@@ -37,7 +37,7 @@ makeman()
 
 main()
 {
-	if [ -f /etc/apt/sources.list ] ; then
+	if [ -d /etc/apt/sources.list.d ] ; then
 		perlmoduledir site_perl
 		apt-get install libio-prompter-perl liblist-moreutils-perl
 	elif [ -e /etc/fedora-release ] ; then
