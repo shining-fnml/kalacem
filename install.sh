@@ -38,11 +38,21 @@ makeman()
 main()
 {
 	if [ -d /etc/apt/sources.list.d ] ; then
+		# Debian
 		perlmoduledir site_perl
 		apt-get install libio-prompter-perl liblist-moreutils-perl
 	elif [ -e /etc/fedora-release ] ; then
+		# Fedora
 		perlmoduledir vendor_perl
 		dnf install perl-IO-Prompter perl-List-MoreUtils
+	elif [ -e /etc/freebsd-update.conf ] ; then
+		# FreeBSD
+		perlmoduledir site_perl
+		# Workaround for FreeBSD 15.1+: manually require
+		# p5-match-simple due to missing dependency in p5-IO-Prompter
+		# (Perl 5.42+ smartmatch removal). This may change in other OS
+		# versions.
+		pkg install p5-IO-Prompter p5-match-simple p5-List-MoreUtils
 	fi
 	install kalacem.pl /usr/local/bin/kalacem
 	install -d $perl_inc/Kalacem
