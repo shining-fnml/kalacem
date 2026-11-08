@@ -47,12 +47,8 @@ makeman()
 main()
 {
         if [ "$(id -u)" -ne 0 ] ; then echo "Please run as root" > /dev/stderr ; exit 1 ; fi
-
         # Detect the Perl modules directory in a cross-platform way
         perlmoduledir
-	echo "perl_inc: $perl_inc"
-	exit 0
-
         # OS-specific dependency management
         if [ -d /etc/apt/sources.list.d ] ; then
                 # Debian / Ubuntu
@@ -73,7 +69,6 @@ main()
                 echo "        Please ensure that 'IO::Prompter' and 'List::MoreUtils' are installed" > /dev/stderr
                 echo "        manually via your package manager or CPAN for this program to work." > /dev/stderr
         fi
-
         # Install the executable and modules
         install kalacem.pl /usr/local/bin/kalacem
         install -d "$perl_inc/Kalacem"
@@ -81,14 +76,14 @@ main()
 }
 
 case "x$1" in
-        xman)
-                makeman
-                ;;
-        xnoman)
-                main
-                ;;
-        *)
-                makeman
-                main
-                ;;
+	xman)
+		makeman
+		;;
+	xnoman)
+		main
+		;;
+	*)
+		makeman
+		main
+		;;
 esac
